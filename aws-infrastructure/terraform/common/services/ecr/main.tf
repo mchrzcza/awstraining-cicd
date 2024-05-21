@@ -26,9 +26,3 @@ module "ecr_backend" {
   environment = var.environment
   common_tags = var.common_tags
 }
-module "ecr_monitoring" {
-  source = "../../../modules/ecr/"
-  name = "monitoring"
-  environment = var.environment
-  common_tags = var.common_tags
-}
