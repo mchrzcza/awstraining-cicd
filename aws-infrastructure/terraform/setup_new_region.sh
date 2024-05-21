@@ -8,7 +8,7 @@ empty_tfstate_bucket() {
       --bucket $TF_STATE_BUCKET \
       --delete "$(aws s3api list-object-versions --bucket ${TF_STATE_BUCKET} --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" \
       --profile $PROFILE \
-      --region $REGION
+      --region $REGION || true
 }
 
 delete_secrets_manager() {
@@ -16,7 +16,7 @@ delete_secrets_manager() {
       --secret-id backend-secretsmanager-test-eu-central-1 \
       --force-delete-without-recovery \
     	--profile $PROFILE \
-    	--region $REGION
+    	--region $REGION || true
 }
 
 empty_ecr() {
@@ -30,7 +30,7 @@ empty_ecr() {
 
 delete_log_groups() {
   aws logs describe-log-groups --query 'logGroups[*].logGroupName' --output table --region $REGION --profile $PROFILE | \
-  awk '{print $2}' | grep -v ^$ | while read x; do  echo "deleting $x" ; aws logs delete-log-group --log-group-name $x --region $REGION --profile $PROFILE; done
+  awk '{print $2}' | grep -v ^$ | while read x; do  echo "deleting $x" ; aws logs delete-log-group --log-group-name $x --region $REGION --profile $PROFILE; done || true
 }
 
 if [ "$#" -lt 4 ]; then
