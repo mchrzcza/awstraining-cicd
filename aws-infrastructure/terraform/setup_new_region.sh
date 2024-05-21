@@ -84,7 +84,7 @@ if [ "$ACTION" = "destroy -auto-approve" ]; then
   ./$SCRIPT $PROFILE $REGION common/networking/securitygroups $ACTION
   ./$SCRIPT $PROFILE $REGION common/networking/vpc $ACTION
   ./$SCRIPT $PROFILE $REGION environments/$PROFILE/$HUB/$REGION/globals $ACTION
-  ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION.
+  ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION
   empty_tfstate_bucket
   ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
   delete_log_groups
