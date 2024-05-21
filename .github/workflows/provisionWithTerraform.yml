@@ -45,7 +45,7 @@ jobs:
       - name: Configure AWS profile
         run: |
           mkdir -p ~/.aws
-          echo "[backend-test]" > ~/.aws/credentials
+          echo "[${{ env.AWS_PROFILE }}]" > ~/.aws/credentials
           echo "aws_access_key_id = ${{ env.AWS_KEY }}" >> ~/.aws/credentials
           echo "aws_secret_access_key = ${{ env.AWS_SECRET }}" >> ~/.aws/credentials
       - name: Run Terraform apply
