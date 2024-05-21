@@ -2,8 +2,9 @@
 
 set -e
 
+TF_STATE_BUCKET="tf-state-${PROFILE}-${REGION}-${UNIQUE_BUCKET_STRING}"
+
 empty_tfstate_bucket() {
-  TF_STATE_BUCKET="tf-state-${PROFILE}-${REGION}-${UNIQUE_BUCKET_STRING}"
   aws s3api delete-objects \
       --bucket $TF_STATE_BUCKET \
       --delete "$(aws s3api list-object-versions --bucket ${TF_STATE_BUCKET} --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" \
@@ -74,20 +75,24 @@ HUB="${REGION_TO_HUB[$REGION]}"
 ACTION=${@:4}
 
 if [ "$ACTION" = "destroy -auto-approve" ]; then
-  ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
-  delete_secrets_manager
-  empty_ecr
-  ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
-  ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-cluster $ACTION
-  ./$SCRIPT $PROFILE $REGION common/services/ecr $ACTION
-  ./$SCRIPT $PROFILE $REGION common/monitoring/sns $ACTION
-  ./$SCRIPT $PROFILE $REGION common/networking/securitygroups $ACTION
-  ./$SCRIPT $PROFILE $REGION common/networking/vpc $ACTION
-  ./$SCRIPT $PROFILE $REGION environments/$PROFILE/$HUB/$REGION/globals $ACTION
-  ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION
-  empty_tfstate_bucket
-  ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
-  delete_log_groups
+  if aws s3api head-bucket --bucket $TF_STATE_BUCKET --profile $PROFILE --region $REGION 2>/dev/null; then
+    ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
+    delete_secrets_manager
+    empty_ecr
+    ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
+    ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-cluster $ACTION
+    ./$SCRIPT $PROFILE $REGION common/services/ecr $ACTION
+    ./$SCRIPT $PROFILE $REGION common/monitoring/sns $ACTION
+    ./$SCRIPT $PROFILE $REGION common/networking/securitygroups $ACTION
+    ./$SCRIPT $PROFILE $REGION common/networking/vpc $ACTION
+    ./$SCRIPT $PROFILE $REGION environments/$PROFILE/$HUB/$REGION/globals $ACTION
+    ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION
+    empty_tfstate_bucket
+    ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
+    delete_log_groups
+  elif
+    echo "Skipping destroy - everything was already destroyed!"
+  fi
 else
   ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
   ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION
