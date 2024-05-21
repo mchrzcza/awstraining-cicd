@@ -90,7 +90,7 @@ if [ "$ACTION" = "destroy -auto-approve" ]; then
     empty_tfstate_bucket
     ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
     delete_log_groups
-  elif
+  else
     echo "Skipping destroy - everything was already destroyed!"
   fi
 else
