@@ -2,6 +2,9 @@
 
 set -e
 
+# Load properties file
+source 'wrapper.properties'
+
 TF_STATE_BUCKET="tf-state-${PROFILE}-${REGION}-${UNIQUE_BUCKET_STRING}"
 
 empty_tfstate_bucket() {
@@ -63,9 +66,6 @@ declare -A REGION_TO_HUB=(
   ["us-east-1"]="us"
   ["cn-north-1"]="cn"
 )
-
-# Load properties file
-source 'wrapper.properties'
 
 SCRIPT=$1
 PROFILE=$2
