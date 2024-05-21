@@ -83,3 +83,12 @@ delete_secrets_manager() {
     	--profile $PROFILE \
     	--region $REGION
 }
+
+empty_ecr() {
+  ECR_REPOSITORY="backend"
+  aws ecr batch-delete-image \
+      --repository-name $ECR_REPOSITORY \
+      --profile $PROFILE \
+      --region $REGION \
+      --image-ids "$(aws ecr list-images --region $REGION --profile $PROFILE --repository-name $ECR_REPOSITORY --query 'imageIds[*]' --output json)" || true
+}
