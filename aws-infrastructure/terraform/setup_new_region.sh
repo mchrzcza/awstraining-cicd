@@ -55,6 +55,7 @@ if [ "$ACTION" = "destroy -auto-approve" ]; then
   ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION.
   empty_tfstate_bucket
   ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
+  delete_log_groups
 else
   ./$SCRIPT $PROFILE $REGION common/general/create-remote-state-bucket $ACTION
   ./$SCRIPT $PROFILE $REGION common/general/dynamo-lock $ACTION
@@ -92,4 +93,9 @@ empty_ecr() {
       --profile $PROFILE \
       --region $REGION \
       --image-ids "$(aws ecr list-images --region $REGION --profile $PROFILE --repository-name $ECR_REPOSITORY --query 'imageIds[*]' --output json)" || true
+}
+
+delete_log_groups() {
+  aws logs describe-log-groups --query 'logGroups[*].logGroupName' --output table --region $REGION --profile $PROFILE | \
+  awk '{print $2}' | grep -v ^$ | while read x; do  echo "deleting $x" ; aws logs delete-log-group --log-group-name $x --region $REGION --profile $PROFILE; done
 }
