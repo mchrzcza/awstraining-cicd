@@ -44,6 +44,7 @@ ACTION=${@:4}
 if [ "$ACTION" = "destroy -auto-approve" ]; then
   ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
   delete_secrets_manager
+  empty_ecr
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-cluster $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/ecr $ACTION
