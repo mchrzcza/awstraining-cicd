@@ -1,6 +1,38 @@
 #!/usr/bin/env bash
 
 set -e
+
+empty_tfstate_bucket() {
+  TF_STATE_BUCKET="tf-state-${PROFILE}-${REGION}-${UNIQUE_BUCKET_STRING}"
+  aws s3api delete-objects \
+      --bucket $TF_STATE_BUCKET \
+      --delete "$(aws s3api list-object-versions --bucket ${TF_STATE_BUCKET} --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" \
+      --profile $PROFILE \
+      --region $REGION
+}
+
+delete_secrets_manager() {
+  aws secretsmanager delete-secret \
+      --secret-id backend-secretsmanager-test-eu-central-1 \
+      --force-delete-without-recovery \
+    	--profile $PROFILE \
+    	--region $REGION
+}
+
+empty_ecr() {
+  ECR_REPOSITORY="backend"
+  aws ecr batch-delete-image \
+      --repository-name $ECR_REPOSITORY \
+      --profile $PROFILE \
+      --region $REGION \
+      --image-ids "$(aws ecr list-images --region $REGION --profile $PROFILE --repository-name $ECR_REPOSITORY --query 'imageIds[*]' --output json)" || true
+}
+
+delete_log_groups() {
+  aws logs describe-log-groups --query 'logGroups[*].logGroupName' --output table --region $REGION --profile $PROFILE | \
+  awk '{print $2}' | grep -v ^$ | while read x; do  echo "deleting $x" ; aws logs delete-log-group --log-group-name $x --region $REGION --profile $PROFILE; done
+}
+
 if [ "$#" -lt 4 ]; then
   echo "Not enough arguments provided."
   echo
@@ -68,34 +100,3 @@ else
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
 fi
-
-empty_tfstate_bucket() {
-  TF_STATE_BUCKET="tf-state-${PROFILE}-${REGION}-${UNIQUE_BUCKET_STRING}"
-  aws s3api delete-objects \
-      --bucket $TF_STATE_BUCKET \
-      --delete "$(aws s3api list-object-versions --bucket ${TF_STATE_BUCKET} --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" \
-      --profile $PROFILE \
-      --region $REGION
-}
-
-delete_secrets_manager() {
-  aws secretsmanager delete-secret \
-      --secret-id backend-secretsmanager-test-eu-central-1 \
-      --force-delete-without-recovery \
-    	--profile $PROFILE \
-    	--region $REGION
-}
-
-empty_ecr() {
-  ECR_REPOSITORY="backend"
-  aws ecr batch-delete-image \
-      --repository-name $ECR_REPOSITORY \
-      --profile $PROFILE \
-      --region $REGION \
-      --image-ids "$(aws ecr list-images --region $REGION --profile $PROFILE --repository-name $ECR_REPOSITORY --query 'imageIds[*]' --output json)" || true
-}
-
-delete_log_groups() {
-  aws logs describe-log-groups --query 'logGroups[*].logGroupName' --output table --region $REGION --profile $PROFILE | \
-  awk '{print $2}' | grep -v ^$ | while read x; do  echo "deleting $x" ; aws logs delete-log-group --log-group-name $x --region $REGION --profile $PROFILE; done
-}
