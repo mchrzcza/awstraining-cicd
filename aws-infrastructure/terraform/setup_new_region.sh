@@ -39,8 +39,6 @@ HUB="${REGION_TO_HUB[$REGION]}"
 ACTION=${@:4}
 
 if [ "$ACTION" = "destroy -auto-approve" ]; then
-  ./$SCRIPT $PROFILE $REGION common/monitoring/ecs-monitoring-service $ACTION
-  ./$SCRIPT $PROFILE $REGION common/monitoring/ecs-monitoring-cluster $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-cluster $ACTION
@@ -62,6 +60,4 @@ else
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-cluster $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/ecs-backend-service $ACTION
   ./$SCRIPT $PROFILE $REGION common/services/measurements-dynamodb $ACTION
-  ./$SCRIPT $PROFILE $REGION common/monitoring/ecs-monitoring-cluster $ACTION
-  ./$SCRIPT $PROFILE $REGION common/monitoring/ecs-monitoring-service $ACTION
 fi
