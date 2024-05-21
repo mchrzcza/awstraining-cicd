@@ -1,6 +1,6 @@
 {
   "family": "backend-task-test",
-  "executionRoleArn": "arn:aws:iam::<<ACCOUNT_ID>>:role/backend-ecs-execution-role-us-east-1",
+  "executionRoleArn": "arn:aws:iam::467331071075:role/backend-ecs-execution-role-us-east-1",
   "containerDefinitions": [
     {
       "logConfiguration": {
