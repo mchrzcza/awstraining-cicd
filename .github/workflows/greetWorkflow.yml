@@ -1,0 +1,24 @@
+name: Greet workflow
+run-name: Greeting everyone
+
+on:
+  workflow_dispatch: {}
+jobs:
+  greet_everyone:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        name:
+          - Damian
+          - Piotr
+          - Jan
+          - Sergio
+    steps:
+      - name: Greet
+        id: greet
+        uses: mchrzcza/hello-world-action@v1
+        with:
+          name: ${{ matrix.name }}
+      - name: Print action call output
+        run: |
+          echo "Output random number: ${{ steps.greet.outputs.random-number }}"
