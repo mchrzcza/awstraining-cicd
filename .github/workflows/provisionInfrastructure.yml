@@ -1,0 +1,56 @@
+name: Provision with Terraform
+run-name: Provision with Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      hubEnv:
+        description: Select target hub and stage
+        required: true
+        type: choice
+        options:
+          - 'BACKEND_EMEA_TEST'
+
+
+jobs:
+  properties:
+    uses: ./.github/workflows/datacenterMap.yml
+    with:
+      hubEnv: ${{ inputs.hubEnv }}
+    secrets: inherit
+
+  terraform:
+    runs-on: ubuntu-latest
+    needs: properties
+    env:
+      AWS_ACCOUNT: ${{ needs.properties.outputs.AWS_ACCOUNT }}
+      AWS_PROFILE: ${{ needs.properties.outputs.PROFILE }}
+      AWS_KEY:  ${{ secrets.BACKEND_EMEA_TEST_AWS_KEY }}
+      AWS_SECRET: ${{ secrets.BACKEND_EMEA_TEST_AWS_SECRET }}
+      AWS_REGION: ${{ needs.properties.outputs.REGION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+
+      - name: Install Terraform ${{ env.terraform_version }}
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+          terraform_wrapper: false
+
+      - name: Configure AWS profile
+        run: |
+          mkdir -p ~/.aws
+          echo "[${{ env.AWS_PROFILE }}]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ env.AWS_KEY }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ env.AWS_SECRET }}" >> ~/.aws/credentials
+      - name: Run Terraform apply
+        run: |
+          cd aws-infrastructure/terraform
+          chmod +x setup_new_region.sh
+          chmod +x w2.sh
+          ./setup_new_region.sh w2.sh ${{ env.AWS_PROFILE }} ${{ env.AWS_REGION }} apply -auto-approve
