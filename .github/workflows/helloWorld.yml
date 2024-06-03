@@ -1,46 +1,44 @@
-name: hello world
-run-name: hello ${{ inputs.name }} run
+name: Hello world
+run-name: Hello ${{ inputs.name }} run
 
 on:
   workflow_dispatch:
     inputs:
       name:
-        description: Name of the user triggering workflow
+        description: "Provide your name"
         required: true
-        type: string
+        type: "string"
       last_name:
-        description: Last name of the user triggering the workflow
+        description: "Provide your last name"
         required: true
-        type: string
+        type: "string"
 jobs:
   print_hello_world:
     runs-on: ubuntu-latest
     steps:
       - name: Print name
         run: |
-          echo "Hello there ${{ inputs.name }}"
+          echo "Hello ${{ inputs.name}}! Welcome in this step!"
+          
   print_last_name:
     runs-on: ubuntu-latest
-    outputs:
-      characters_length: ${{ steps.characters_length.outputs.length }}
     steps:
       - name: Print last name
         run: |
-          echo "My last name is ${{ inputs.last_name }}"
-      - name: Count characters
-        id: characters_length
+          echo "Your last name is ${{ inputs.last_name }}"-
+      - id: count_characters
+        name: Count characters
         run: |
           last_name="${{ inputs.last_name }}"
           length=${#last_name}
           echo "length=$length" >> $GITHUB_OUTPUT
-      - name: Test
-        run: |
-          echo "Length inside previous step: ${{ steps.characters_length.outputs.length }}"
-  summary:
+    outputs:
+      last_name_length: ${{ steps.count_characters.outputs.length }}
+
+  print_last_name_length:
     runs-on: ubuntu-latest
     needs: print_last_name
     steps:
-      - name: Display summary
+      - name: Display last name length in summary
         run: |
-          echo "### Summary - Length of last name: ${{ needs.print_last_name.characters_length }}" >> $GITHUB_STEP_SUMMARY
-        
+          echo "### Summary: Length of last name is ${{ needs.print_last_name.outputs.last_name_length }}" >> $GITHUB_STEP_SUMMARY
